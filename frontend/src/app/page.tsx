@@ -3,73 +3,28 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { AutoRefresh } from "@/components/auto-refresh";
-import { EmbeddingSettingsPanel } from "@/components/embedding-settings-panel";
 import { HeaderActions } from "@/components/header-actions";
-import { MCPEmailPanel } from "@/components/mcp-email-panel";
 import { PolicyAuditPanel } from "@/components/policy-audit-panel";
 import type { AuditLogRead } from "@shared/contracts/audit";
 import type { UsageSummary } from "@shared/contracts/billing";
 import type { ComplianceDashboard } from "@shared/contracts/compliance";
 import type { PolicyAuditRecord } from "@shared/contracts/policy-audit";
 import type { ScraperStatus } from "@shared/contracts/scraper";
-import { apiHeaders } from "@/lib/api";
+import { apiHeadersServer, getServerApiKey } from "@/lib/api-server";
 
-const fallbackDashboard: ComplianceDashboard = {
-  score: { score: 78, rating: "Needs attention" },
-  active_alerts: [
-    {
-      id: "fallback-privacy",
-      title: "Awaiting regulatory sync",
-      summary: "Run the agentic scraper to populate live alerts.",
-      severity: "Low",
-      source_url: "safescale.ai",
-      published_at: "Just now",
-    },
-  ],
-};
-
-const fallbackAuditTrail: AuditLogRead[] = [
-  {
-    id: 1,
-    action: "policy_audit",
-    actor: "system",
-    target: null,
-    outcome: "success",
-    summary: "Ready to audit your first policy document.",
-    metadata: {},
-    created_at: new Date().toISOString(),
-  },
-];
-
-const fallbackUsage: UsageSummary = {
-  total_cost: 0,
-  total_scans: 0,
-};
-
-const fallbackAudit: PolicyAuditRecord | null = null;
-const fallbackScraper: ScraperStatus = {
-  enabled: false,
-  last_run_at: null,
-  next_run_at: null,
-  status: null,
-  scanned: 0,
-  alerts_created: 0,
-  notes: [],
-};
-
-async function loadDashboard(): Promise<ComplianceDashboard> {
+async function loadDashboard(): Promise<ComplianceDashboard | null> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
   try {
     const response = await fetch(`${baseUrl}/dashboard`, {
       cache: "no-store",
-      headers: apiHeaders(),
+      headers: await apiHeadersServer(),
     });
     if (!response.ok) {
-      return fallbackDashboard;
+      return null;
     }
     return (await response.json()) as ComplianceDashboard;
   } catch {
-    return fallbackDashboard;
+    return null;
   }
 }
 
@@ -78,30 +33,30 @@ async function loadAuditTrail(): Promise<AuditLogRead[]> {
   try {
     const response = await fetch(`${baseUrl}/audit/recent`, {
       cache: "no-store",
-      headers: apiHeaders(),
+      headers: await apiHeadersServer(),
     });
     if (!response.ok) {
-      return fallbackAuditTrail;
+      return [];
     }
     return (await response.json()) as AuditLogRead[];
   } catch {
-    return fallbackAuditTrail;
+    return [];
   }
 }
 
-async function loadUsage(): Promise<UsageSummary> {
+async function loadUsage(): Promise<UsageSummary | null> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
   try {
     const response = await fetch(`${baseUrl}/billing/usage`, {
       cache: "no-store",
-      headers: apiHeaders(),
+      headers: await apiHeadersServer(),
     });
     if (!response.ok) {
-      return fallbackUsage;
+      return null;
     }
     return (await response.json()) as UsageSummary;
   } catch {
-    return fallbackUsage;
+    return null;
   }
 }
 
@@ -110,30 +65,30 @@ async function loadLatestAudit(): Promise<PolicyAuditRecord | null> {
   try {
     const response = await fetch(`${baseUrl}/policy/audits/latest`, {
       cache: "no-store",
-      headers: apiHeaders(),
+      headers: await apiHeadersServer(),
     });
     if (!response.ok) {
-      return fallbackAudit;
+      return null;
     }
     return (await response.json()) as PolicyAuditRecord | null;
   } catch {
-    return fallbackAudit;
+    return null;
   }
 }
 
-async function loadScraperStatus(): Promise<ScraperStatus> {
+async function loadScraperStatus(): Promise<ScraperStatus | null> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
   try {
     const response = await fetch(`${baseUrl}/scraper/status`, {
       cache: "no-store",
-      headers: apiHeaders(),
+      headers: await apiHeadersServer(),
     });
     if (!response.ok) {
-      return fallbackScraper;
+      return null;
     }
     return (await response.json()) as ScraperStatus;
   } catch {
-    return fallbackScraper;
+    return null;
   }
 }
 
@@ -146,14 +101,18 @@ function toHostname(url: string): string {
 }
 
 export default async function Home() {
+  const apiKey = await getServerApiKey();
+  const hasApiKey = Boolean(apiKey);
   const dashboard = await loadDashboard();
   const auditTrail = await loadAuditTrail();
   const usage = await loadUsage();
   const latestAudit = await loadLatestAudit();
   const scraperStatus = await loadScraperStatus();
   const includedScans = 25;
-  const usagePercent = Math.min(100, (usage.total_scans / includedScans) * 100);
-  const alerts = dashboard.active_alerts.map((alert) => ({
+  const usagePercent = usage
+    ? Math.min(100, (usage.total_scans / includedScans) * 100)
+    : 0;
+  const alerts = (dashboard?.active_alerts ?? []).map((alert) => ({
     ...alert,
     source: toHostname(alert.source_url),
     date: alert.published_at,
@@ -180,6 +139,11 @@ export default async function Home() {
           </div>
           <HeaderActions />
         </header>
+        {!hasApiKey ? (
+          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-800">
+            Add your org API key to load live data from the backend.
+          </div>
+        ) : null}
 
         <section className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <Card className="border-emerald-200/70 bg-white/80">
@@ -188,33 +152,48 @@ export default async function Home() {
               <CardDescription>Updated 2 hours ago after last scan.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between gap-6">
-                <div>
-                  <p className="text-5xl font-semibold text-emerald-600">{dashboard.score.score}</p>
-                  <p className="text-sm text-zinc-500">{dashboard.score.rating}</p>
+              {dashboard ? (
+                <>
+                  <div className="flex items-center justify-between gap-6">
+                    <div>
+                      <p className="text-5xl font-semibold text-emerald-600">
+                        {dashboard.score.score}
+                      </p>
+                      <p className="text-sm text-zinc-500">{dashboard.score.rating}</p>
+                    </div>
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
+                      <p className="font-semibold">Gold Standard Alignment</p>
+                      <p className="mt-1 text-emerald-700">72% mapped · 11 pending</p>
+                    </div>
+                  </div>
+                  <div className="mt-6 space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-zinc-500">Privacy controls</span>
+                      <span className="font-semibold text-zinc-900">92%</span>
+                    </div>
+                    <Progress value={92} />
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-zinc-500">Employee handbook</span>
+                      <span className="font-semibold text-zinc-900">78%</span>
+                    </div>
+                    <Progress value={78} className="bg-amber-100" />
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-zinc-500">Vendor security</span>
+                      <span className="font-semibold text-zinc-900">65%</span>
+                    </div>
+                    <Progress value={65} className="bg-rose-100" />
+                  </div>
+                </>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/60 px-4 py-4 text-sm text-emerald-800">
+                  <p className="font-semibold">No score available yet.</p>
+                  <p className="mt-1 text-emerald-700">
+                    {hasApiKey
+                      ? "Run a scan to generate your first score."
+                      : "Add an API key to load your compliance data."}
+                  </p>
                 </div>
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
-                  <p className="font-semibold">Gold Standard Alignment</p>
-                  <p className="mt-1 text-emerald-700">72% mapped · 11 pending</p>
-                </div>
-              </div>
-              <div className="mt-6 space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-zinc-500">Privacy controls</span>
-                  <span className="font-semibold text-zinc-900">92%</span>
-                </div>
-                <Progress value={92} />
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-zinc-500">Employee handbook</span>
-                  <span className="font-semibold text-zinc-900">78%</span>
-                </div>
-                <Progress value={78} className="bg-amber-100" />
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-zinc-500">Vendor security</span>
-                  <span className="font-semibold text-zinc-900">65%</span>
-                </div>
-                <Progress value={65} className="bg-rose-100" />
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -230,35 +209,46 @@ export default async function Home() {
               <CardDescription>Monitored by the autonomous agentic scraper.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {alerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className="flex flex-col gap-3 rounded-xl border border-zinc-100 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        className={
-                          alert.severity === "High"
-                            ? "bg-rose-100 text-rose-700"
-                            : alert.severity === "Medium"
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-emerald-100 text-emerald-700"
-                        }
-                      >
-                        {alert.severity}
-                      </Badge>
-                      <span className="text-xs text-zinc-500">{alert.date}</span>
-                    </div>
-                    <p className="text-base font-semibold text-zinc-900">{alert.title}</p>
-                    <p className="text-sm text-zinc-500">{alert.summary}</p>
-                  </div>
-                  <div className="text-right text-xs text-zinc-500">
-                    <p>Source</p>
-                    <p className="font-semibold text-zinc-800">{alert.source}</p>
-                  </div>
+              {alerts.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-4 text-sm text-zinc-600">
+                  <p className="font-semibold text-zinc-800">No alerts yet.</p>
+                  <p className="mt-1">
+                    {hasApiKey
+                      ? "Run the scraper to populate regulatory alerts."
+                      : "Add an API key to fetch alerts from your backend."}
+                  </p>
                 </div>
-              ))}
+              ) : (
+                alerts.map((alert) => (
+                  <div
+                    key={alert.id}
+                    className="flex flex-col gap-3 rounded-xl border border-zinc-100 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          className={
+                            alert.severity === "High"
+                              ? "bg-rose-100 text-rose-700"
+                              : alert.severity === "Medium"
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-emerald-100 text-emerald-700"
+                          }
+                        >
+                          {alert.severity}
+                        </Badge>
+                        <span className="text-xs text-zinc-500">{alert.date}</span>
+                      </div>
+                      <p className="text-base font-semibold text-zinc-900">{alert.title}</p>
+                      <p className="text-sm text-zinc-500">{alert.summary}</p>
+                    </div>
+                    <div className="text-right text-xs text-zinc-500">
+                      <p>Source</p>
+                      <p className="font-semibold text-zinc-800">{alert.source}</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
 
@@ -269,76 +259,100 @@ export default async function Home() {
                 <CardDescription>Autonomous agent monitoring regulatory sources.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-zinc-500">Status</span>
-                  <Badge
-                    className={
-                      scraperStatus.status === "success"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : scraperStatus.status === "partial"
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-zinc-100 text-zinc-600"
-                    }
-                  >
-                    {scraperStatus.status ?? "Idle"}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between text-zinc-500">
-                  <span>Last run</span>
-                  <span className="text-zinc-900">
-                    {scraperStatus.last_run_at
-                      ? new Date(scraperStatus.last_run_at).toLocaleString()
-                      : "Not yet"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-zinc-500">
-                  <span>Next run</span>
-                  <span className="text-zinc-900">
-                    {scraperStatus.next_run_at
-                      ? new Date(scraperStatus.next_run_at).toLocaleString()
-                      : scraperStatus.enabled
-                      ? "Pending"
-                      : "Disabled"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-zinc-500">
-                  <span>Scanned</span>
-                  <span className="text-zinc-900">{scraperStatus.scanned}</span>
-                </div>
-                <div className="flex items-center justify-between text-zinc-500">
-                  <span>New alerts</span>
-                  <span className="text-zinc-900">{scraperStatus.alerts_created}</span>
-                </div>
+                {scraperStatus ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-500">Status</span>
+                      <Badge
+                        className={
+                          scraperStatus.status === "success"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : scraperStatus.status === "partial"
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-zinc-100 text-zinc-600"
+                        }
+                      >
+                        {scraperStatus.status ?? "Idle"}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between text-zinc-500">
+                      <span>Last run</span>
+                      <span className="text-zinc-900">
+                        {scraperStatus.last_run_at
+                          ? new Date(scraperStatus.last_run_at).toLocaleString()
+                          : "Not yet"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-zinc-500">
+                      <span>Next run</span>
+                      <span className="text-zinc-900">
+                        {scraperStatus.next_run_at
+                          ? new Date(scraperStatus.next_run_at).toLocaleString()
+                          : scraperStatus.enabled
+                          ? "Pending"
+                          : "Disabled"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-zinc-500">
+                      <span>Scanned</span>
+                      <span className="text-zinc-900">{scraperStatus.scanned}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-zinc-500">
+                      <span>New alerts</span>
+                      <span className="text-zinc-900">{scraperStatus.alerts_created}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-3 text-zinc-600">
+                    <p className="font-semibold text-zinc-800">Scraper status unavailable.</p>
+                    <p className="mt-1 text-xs">
+                      {hasApiKey
+                        ? "Run the scraper to generate a status snapshot."
+                        : "Add an API key to load scraper status."}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
-            <EmbeddingSettingsPanel />
-            <MCPEmailPanel />
             <Card className="border-zinc-200/70 bg-white/90">
               <CardHeader>
                 <CardTitle>Usage-based billing</CardTitle>
                 <CardDescription>$4.50 per compliance scan</CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
-                <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3">
-                  <p className="text-sm text-zinc-600">September usage</p>
-                  <div className="mt-2 flex items-baseline justify-between">
-                    <p className="text-3xl font-semibold text-zinc-900">
-                      ${usage.total_cost.toFixed(2)}
+                {usage ? (
+                  <>
+                    <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+                      <p className="text-sm text-zinc-600">September usage</p>
+                      <div className="mt-2 flex items-baseline justify-between">
+                        <p className="text-3xl font-semibold text-zinc-900">
+                          ${usage.total_cost.toFixed(2)}
+                        </p>
+                        <p className="text-sm text-zinc-500">{usage.total_scans} scans</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm text-zinc-500">
+                        <span>Included scans</span>
+                        <span className="text-zinc-900">{includedScans}</span>
+                      </div>
+                      <Progress value={usagePercent} className="bg-zinc-100" />
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <Badge className="bg-emerald-100 text-emerald-700">On track</Badge>
+                      <span className="text-zinc-500">Projected spend: $112</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-4 text-sm text-zinc-600">
+                    <p className="font-semibold text-zinc-800">No usage data yet.</p>
+                    <p className="mt-1">
+                      {hasApiKey
+                        ? "Run a scan to start tracking usage."
+                        : "Add an API key to load billing data."}
                     </p>
-                    <p className="text-sm text-zinc-500">{usage.total_scans} scans</p>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm text-zinc-500">
-                    <span>Included scans</span>
-                    <span className="text-zinc-900">{includedScans}</span>
-                  </div>
-                  <Progress value={usagePercent} className="bg-zinc-100" />
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Badge className="bg-emerald-100 text-emerald-700">On track</Badge>
-                  <span className="text-zinc-500">Projected spend: $112</span>
-                </div>
+                )}
               </CardContent>
             </Card>
             <Card className="bg-white/90">
@@ -347,21 +361,36 @@ export default async function Home() {
                 <CardDescription>Last automated actions logged.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
-                {auditTrail.map((item) => (
-                  <div
-                    key={`${item.id}-${item.action}`}
-                    className="rounded-xl border border-zinc-100 bg-zinc-50 px-4 py-3"
-                  >
-                    <p className="font-semibold text-zinc-900">{item.action.replace(/_/g, " ")}</p>
-                    <p className="text-zinc-500">{item.summary ?? "Logged action"}</p>
-                    <p className="mt-2 text-xs text-zinc-400">
-                      {new Date(item.created_at).toLocaleString()}
+                {auditTrail.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-4 text-sm text-zinc-600">
+                    <p className="font-semibold text-zinc-800">No audit events yet.</p>
+                    <p className="mt-1">
+                      {hasApiKey
+                        ? "Trigger a scan or policy audit to populate the log."
+                        : "Add an API key to load your audit history."}
                     </p>
                   </div>
-                ))}
-                <Button variant="ghost" className="w-full justify-center">
-                  View full audit trail
-                </Button>
+                ) : (
+                  <>
+                    {auditTrail.map((item) => (
+                      <div
+                        key={`${item.id}-${item.action}`}
+                        className="rounded-xl border border-zinc-100 bg-zinc-50 px-4 py-3"
+                      >
+                        <p className="font-semibold text-zinc-900">
+                          {item.action.replace(/_/g, " ")}
+                        </p>
+                        <p className="text-zinc-500">{item.summary ?? "Logged action"}</p>
+                        <p className="mt-2 text-xs text-zinc-400">
+                          {new Date(item.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                    ))}
+                    <Button variant="ghost" className="w-full justify-center">
+                      View full audit trail
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>

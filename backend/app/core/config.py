@@ -8,6 +8,7 @@ BASE_DIR = Path(__file__).resolve().parents[3]
 class Settings(BaseSettings):
     app_name: str = "SafeScale AI Backend"
     database_url: str = "postgresql+asyncpg://safescale:safescale_dev@localhost:5432/safescale"
+    admin_bootstrap_token: str | None = None
     scraper_urls: list[str] = [
         "https://www.ftc.gov/news-events/news/press-releases",
         "https://oag.ca.gov/privacy",

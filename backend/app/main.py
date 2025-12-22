@@ -1,9 +1,11 @@
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.audit import router as audit_router
 from app.api.billing import router as billing_router
@@ -24,6 +26,8 @@ from app.mcp import mcp_server
 from app.mcp.connectors.email_mbox import EmailMboxConnector
 from app.mcp.connectors.local_files import LocalFilesConnector
 from app.services.scraper import scraper_loop
+
+logger = logging.getLogger("safescale")
 
 
 @asynccontextmanager
@@ -57,6 +61,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="SafeScale AI Backend", version="0.1.0", lifespan=lifespan)
+logging.basicConfig(level=logging.INFO)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.exception("Unhandled exception", extra={"path": request.url.path, "method": request.method})
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 app.add_middleware(
     CORSMiddleware,

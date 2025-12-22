@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -81,6 +82,9 @@ export function HeaderActions() {
         </Button>
         <Button variant="ghost" onClick={runScraper} disabled={scraperState.isLoading}>
           {scraperState.isLoading ? "Syncing alerts..." : "Refresh alerts"}
+        </Button>
+        <Button variant="ghost" asChild>
+          <Link href="/settings">Settings</Link>
         </Button>
       </div>
       {scanState.message ? <p className="text-xs text-zinc-500">{scanState.message}</p> : null}

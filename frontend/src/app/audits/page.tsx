@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AuditDownloadButton } from "@/components/audit-download-button";
 import { AuditReportViewer } from "@/components/audit-report-viewer";
 import type { PolicyAuditRecord } from "@shared/contracts/policy-audit";
-import { apiHeaders } from "@/lib/api";
+import { apiHeadersServer, getServerApiKey } from "@/lib/api-server";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -14,7 +14,7 @@ async function loadAudits(): Promise<PolicyAuditRecord[]> {
   try {
     const response = await fetch(`${API_URL}/policy/audits`, {
       cache: "no-store",
-      headers: apiHeaders(),
+      headers: await apiHeadersServer(),
     });
     if (!response.ok) {
       return [];
@@ -37,12 +37,13 @@ function ratingColor(rating: string): string {
 }
 
 export default async function AuditsPage() {
+  const hasApiKey = Boolean(await getServerApiKey());
   const audits = await loadAudits();
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#d9f5e3,_#f7f6f2_40%,_#f2f6ff_100%)] text-zinc-900">
       <div className="relative mx-auto max-w-6xl px-6 pb-16 pt-10">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">
               SafeScale AI
@@ -52,9 +53,14 @@ export default async function AuditsPage() {
               Review recent audits and download reports for your records.
             </p>
           </div>
-          <Button asChild variant="secondary">
-            <Link href="/">Back to dashboard</Link>
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild variant="secondary">
+              <Link href="/">Back to dashboard</Link>
+            </Button>
+            <Button asChild variant="ghost">
+              <Link href="/settings">Settings</Link>
+            </Button>
+          </div>
         </header>
 
         <section className="mt-8 grid gap-6">
@@ -62,7 +68,11 @@ export default async function AuditsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>No audits yet</CardTitle>
-                <CardDescription>Upload a PDF on the dashboard to generate your first audit.</CardDescription>
+                <CardDescription>
+                  {hasApiKey
+                    ? "Upload a PDF on the dashboard to generate your first audit."
+                    : "Add an API key to load audit history."}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button asChild>
