@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS scraper_run (
+  id SERIAL PRIMARY KEY,
+  status VARCHAR(40) NOT NULL,
+  scanned INTEGER NOT NULL DEFAULT 0,
+  alerts_created INTEGER NOT NULL DEFAULT 0,
+  notes JSONB NOT NULL DEFAULT '[]'::jsonb,
+  started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  finished_at TIMESTAMPTZ
+);

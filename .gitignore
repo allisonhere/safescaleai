@@ -1,0 +1,21 @@
+.DS_Store
+.env
+.env.*
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Node
+node_modules/
+*.log
+
+# Runtime artifacts
+logs/
+*.sqlite3
+
+# OS/editor
+Thumbs.db

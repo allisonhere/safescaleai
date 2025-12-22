@@ -1,0 +1,36 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE IF NOT EXISTS regulatory_alert (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(200) NOT NULL,
+  summary TEXT NOT NULL,
+  severity VARCHAR(20) NOT NULL,
+  source_url VARCHAR(400) NOT NULL,
+  published_at VARCHAR(40) NOT NULL,
+  raw_payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS compliance_score (
+  id SERIAL PRIMARY KEY,
+  score INTEGER NOT NULL,
+  rating VARCHAR(40) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS usage_event (
+  id SERIAL PRIMARY KEY,
+  event_type VARCHAR(60) NOT NULL,
+  units INTEGER NOT NULL DEFAULT 1,
+  unit_cost DOUBLE PRECISION NOT NULL,
+  total_cost DOUBLE PRECISION NOT NULL,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS compliance_checklist (
+  id SERIAL PRIMARY KEY,
+  text TEXT NOT NULL,
+  embedding VECTOR(64) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
