@@ -80,7 +80,7 @@ export function MCPEmailPanel() {
   }, []);
 
   return (
-    <Card className="bg-white/90">
+    <Card className="bg-[var(--surface)]">
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <CardTitle>MCP email preview</CardTitle>
@@ -93,31 +93,35 @@ export function MCPEmailPanel() {
       <CardContent className="space-y-4 text-sm">
         {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         {messages.length === 0 ? (
-          <p className="text-sm text-zinc-500">No messages found.</p>
-        ) : (
-          <div className="grid gap-3">
-            {messages.map((message) => (
-              <button
-                key={message.id}
-                className="flex flex-col gap-1 rounded-xl border border-zinc-100 bg-zinc-50 px-4 py-3 text-left transition hover:bg-white"
-                onClick={() => fetchMessage(message.id)}
-              >
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold text-zinc-900">{message.subject ?? "(no subject)"}</p>
-                  <Badge className="bg-zinc-100 text-zinc-600">ID {message.id}</Badge>
-                </div>
-                <p className="text-xs text-zinc-500">{message.from ?? "Unknown sender"}</p>
-                <p className="text-xs text-zinc-400">{message.date ?? ""}</p>
-              </button>
-            ))}
-          </div>
-        )}
+            <p className="text-sm theme-muted">No messages found.</p>
+          ) : (
+            <div className="grid gap-3">
+              {messages.map((message) => (
+                <button
+                  key={message.id}
+                  className="flex flex-col gap-1 rounded-xl border theme-border theme-surface-2 px-4 py-3 text-left transition hover:bg-[var(--surface)]"
+                  onClick={() => fetchMessage(message.id)}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-[var(--foreground)]">
+                      {message.subject ?? "(no subject)"}
+                    </p>
+                    <Badge className="bg-[var(--surface-2)] text-[var(--muted-foreground)]">
+                      ID {message.id}
+                    </Badge>
+                  </div>
+                  <p className="text-xs theme-muted">{message.from ?? "Unknown sender"}</p>
+                  <p className="text-xs text-[var(--muted-foreground)]">{message.date ?? ""}</p>
+                </button>
+              ))}
+            </div>
+          )}
 
         {selected ? (
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 px-4 py-3">
-            <p className="text-sm font-semibold text-emerald-900">{selected.subject}</p>
-            <p className="text-xs text-emerald-700">From: {selected.from}</p>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-emerald-900">
+          <div className="rounded-xl border border-[var(--accent-soft)] bg-[var(--accent-soft)] px-4 py-3">
+            <p className="text-sm font-semibold text-[var(--foreground)]">{selected.subject}</p>
+            <p className="text-xs theme-muted">From: {selected.from}</p>
+            <p className="mt-2 whitespace-pre-wrap text-sm text-[var(--foreground)]">
               {selected.body ?? "(empty message)"}
             </p>
           </div>

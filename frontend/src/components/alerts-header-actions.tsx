@@ -40,7 +40,7 @@ export function AlertsHeaderActions() {
       <Button variant="ghost" size="sm" onClick={runScraper} disabled={loading}>
         {loading ? "Syncing..." : "Refresh alerts"}
       </Button>
-      {message ? <p className="text-xs text-zinc-500">{message}</p> : null}
+      {message ? <p className="text-xs theme-muted">{message}</p> : null}
     </div>
   );
 }

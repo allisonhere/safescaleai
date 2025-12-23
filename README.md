@@ -51,6 +51,10 @@ curl -X POST http://localhost:8000/auth/register \
 
 Then sign in via the Settings page to store the session token in the browser.
 
+## Theme
+
+Use the theme toggle in the top-right header to switch between light and dark mode.
+
 For admin-created orgs, set `ADMIN_BOOTSTRAP_TOKEN` and call:
 
 ```bash

@@ -54,15 +54,15 @@ export function EmbeddingSettingsPanel() {
   };
 
   return (
-    <Card className="bg-white/90">
+    <Card className="bg-[var(--surface)]">
       <CardHeader>
         <CardTitle>Embedding threshold</CardTitle>
         <CardDescription>Higher values are stricter matching for audits.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <div className="flex items-center justify-between">
-          <span className="text-zinc-500">Current value</span>
-          <span className="text-zinc-900">{value.toFixed(2)}</span>
+          <span className="theme-muted">Current value</span>
+          <span className="text-[var(--foreground)]">{value.toFixed(2)}</span>
         </div>
         <input
           type="range"
@@ -76,7 +76,7 @@ export function EmbeddingSettingsPanel() {
         <Button onClick={saveValue} disabled={isSaving}>
           {isSaving ? "Saving..." : "Save threshold"}
         </Button>
-        {message ? <p className="text-xs text-zinc-500">{message}</p> : null}
+        {message ? <p className="text-xs theme-muted">{message}</p> : null}
       </CardContent>
     </Card>
   );

@@ -41,7 +41,7 @@ export default async function AuditsPage() {
   const audits = await loadAudits();
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#d9f5e3,_#f7f6f2_40%,_#f2f6ff_100%)] text-zinc-900">
+    <div className="min-h-screen theme-page">
       <div className="relative mx-auto max-w-6xl px-6 pb-16 pt-10">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -49,7 +49,7 @@ export default async function AuditsPage() {
               SafeScale AI
             </p>
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Policy audit history</h1>
-            <p className="text-base text-zinc-600">
+            <p className="text-base theme-muted">
               Review recent audits and download reports for your records.
             </p>
           </div>
@@ -82,7 +82,7 @@ export default async function AuditsPage() {
             </Card>
           ) : (
             audits.map((audit) => (
-              <Card key={audit.id} className="bg-white/90">
+              <Card key={audit.id} className="bg-[var(--surface)]">
                 <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <CardTitle>{audit.filename}</CardTitle>
@@ -93,11 +93,11 @@ export default async function AuditsPage() {
                   <Badge className={ratingColor(audit.rating)}>{audit.rating}</Badge>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex flex-wrap gap-4 text-sm text-zinc-600">
+                  <div className="flex flex-wrap gap-4 text-sm theme-muted">
                     <span>Matched: {audit.matched_items.length}</span>
                     <span>Gaps: {audit.gaps.length}</span>
                   </div>
-                  <p className="text-xs text-zinc-500">{audit.guardrail_note}</p>
+                  <p className="text-xs theme-muted">{audit.guardrail_note}</p>
                   <div className="flex flex-wrap gap-3">
                     <AuditDownloadButton auditId={audit.id} filename={audit.filename} />
                     <AuditReportViewer auditId={audit.id} />

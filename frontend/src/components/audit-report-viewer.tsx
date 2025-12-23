@@ -38,7 +38,7 @@ function severityClassName(severity?: string): string {
   if (severity === "medium") {
     return "bg-amber-100 text-amber-700";
   }
-  return "bg-zinc-100 text-zinc-600";
+  return "bg-[var(--surface-2)] text-[var(--muted-foreground)]";
 }
 
 export function AuditReportViewer({ auditId, initialReport }: AuditReportViewerProps) {
@@ -80,16 +80,16 @@ export function AuditReportViewer({ auditId, initialReport }: AuditReportViewerP
       </Button>
       {error ? <p className="text-xs text-rose-600">{error}</p> : null}
       {expanded && report ? (
-        <div className="rounded-xl border border-zinc-100 bg-white px-4 py-3 text-sm text-zinc-700">
-          <p className="font-semibold text-zinc-900">{report.rating} · Score {report.score}</p>
-          <p className="text-xs text-zinc-500">{new Date(report.created_at).toLocaleString()}</p>
+        <div className="rounded-xl border theme-border theme-surface px-4 py-3 text-sm text-[var(--foreground)]">
+          <p className="font-semibold">{report.rating} · Score {report.score}</p>
+          <p className="text-xs theme-muted">{new Date(report.created_at).toLocaleString()}</p>
           {report.doc_type || report.jurisdiction ? (
-            <p className="mt-2 text-xs text-zinc-500">
+            <p className="mt-2 text-xs theme-muted">
               Classification: {report.doc_type ?? "general"} · {report.jurisdiction ?? "general"}
             </p>
           ) : null}
           <div className="mt-3">
-            <p className="text-xs font-semibold text-zinc-500">Matched items</p>
+            <p className="text-xs font-semibold theme-muted">Matched items</p>
             <ul className="list-disc pl-5">
               {report.matched_items.map((item) => (
                 <li key={item}>{item}</li>
@@ -97,7 +97,7 @@ export function AuditReportViewer({ auditId, initialReport }: AuditReportViewerP
             </ul>
           </div>
           <div className="mt-3">
-            <p className="text-xs font-semibold text-zinc-500">Gaps</p>
+            <p className="text-xs font-semibold theme-muted">Gaps</p>
             <ul className="list-disc pl-5">
               {report.gaps.map((gap) => (
                 <li key={gap.checklist_item}>
@@ -105,12 +105,12 @@ export function AuditReportViewer({ auditId, initialReport }: AuditReportViewerP
                     {(gap.severity ?? "medium").toUpperCase()}
                   </Badge>
                   <span className="font-medium">Missing:</span> {gap.checklist_item}
-                  {gap.reason ? <span className="text-xs text-zinc-500"> — {gap.reason}</span> : null}
+                  {gap.reason ? <span className="text-xs theme-muted"> — {gap.reason}</span> : null}
                 </li>
               ))}
             </ul>
           </div>
-          <p className="mt-3 text-xs text-zinc-500">{report.guardrail_note}</p>
+          <p className="mt-3 text-xs theme-muted">{report.guardrail_note}</p>
         </div>
       ) : null}
     </div>

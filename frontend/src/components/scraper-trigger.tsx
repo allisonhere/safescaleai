@@ -37,7 +37,7 @@ export function ScraperTrigger() {
       <Button variant="ghost" onClick={runScraper} disabled={loading}>
         {loading ? "Syncing alerts..." : "Run scraper now"}
       </Button>
-      {message ? <p className="text-xs text-zinc-500">{message}</p> : null}
+      {message ? <p className="text-xs theme-muted">{message}</p> : null}
     </div>
   );
 }

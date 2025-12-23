@@ -83,7 +83,7 @@ export function PolicyAuditPanel({ initialAudit }: PolicyAuditPanelProps) {
   };
 
   return (
-    <Card className="bg-white/90">
+    <Card className="bg-[var(--surface)]">
       <CardHeader>
         <CardTitle>AI policy auditor</CardTitle>
         <CardDescription>Upload a PDF to compare against the Gold Standard checklist.</CardDescription>
@@ -108,32 +108,34 @@ export function PolicyAuditPanel({ initialAudit }: PolicyAuditPanelProps) {
           className="hidden"
         />
         {error ? <p className="text-sm text-rose-600">{error}</p> : null}
-        {scanMessage ? <p className="text-sm text-zinc-500">{scanMessage}</p> : null}
+        {scanMessage ? <p className="text-sm theme-muted">{scanMessage}</p> : null}
 
         {audit ? (
-          <div className="space-y-3 rounded-2xl border border-zinc-100 bg-zinc-50 px-4 py-4">
+          <div className="space-y-3 rounded-2xl border theme-border theme-surface-2 px-4 py-4">
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="bg-emerald-100 text-emerald-700">{audit.rating}</Badge>
-              <span className="text-sm text-zinc-600">Score: {audit.score}</span>
-              <span className="text-xs text-zinc-400">{new Date(audit.created_at).toLocaleString()}</span>
+              <span className="text-sm theme-muted">Score: {audit.score}</span>
+              <span className="text-xs text-[var(--muted-foreground)]">
+                {new Date(audit.created_at).toLocaleString()}
+              </span>
             </div>
-            <p className="text-sm text-zinc-600">File: {audit.filename}</p>
+            <p className="text-sm theme-muted">File: {audit.filename}</p>
             {audit.doc_type || audit.jurisdiction ? (
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs theme-muted">
                 Classified as {audit.doc_type ?? "general"} ({audit.jurisdiction ?? "general"})
               </p>
             ) : null}
-            <div className="text-sm text-zinc-600">
+            <div className="text-sm theme-muted">
               Matched items: {audit.matched_items.length} · Gaps: {audit.gaps.length}
             </div>
-            <p className="text-xs text-zinc-500">{audit.guardrail_note}</p>
-            {audit ? (
-              <AuditDownloadButton auditId={audit.id} filename={audit.filename} />
-            ) : null}
+            <p className="text-xs theme-muted">{audit.guardrail_note}</p>
+          {audit ? (
+            <AuditDownloadButton auditId={audit.id} filename={audit.filename} />
+          ) : null}
             {audit ? <AuditReportViewer auditId={audit.id} initialReport={audit} /> : null}
           </div>
         ) : (
-          <p className="text-sm text-zinc-500">No audits yet. Upload a PDF to generate one.</p>
+          <p className="text-sm theme-muted">No audits yet. Upload a PDF to generate one.</p>
         )}
         <div>
           <Button asChild variant="ghost" size="sm">

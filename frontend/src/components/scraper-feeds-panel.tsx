@@ -89,7 +89,7 @@ export function ScraperFeedsPanel() {
           value={newFeed}
           onChange={(event) => setNewFeed(event.target.value)}
           placeholder="https://example.com/rss.xml"
-          className="min-w-[240px] flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:border-emerald-400 focus:outline-none"
+          className="min-w-[240px] flex-1 rounded-lg border theme-input px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none"
         />
         <Button variant="secondary" onClick={addFeed} disabled={loading}>
           Add feed
@@ -101,17 +101,17 @@ export function ScraperFeedsPanel() {
       {error ? <p className="text-xs text-rose-600">{error}</p> : null}
       {message ? <p className="text-xs text-emerald-600">{message}</p> : null}
       {loading ? (
-        <p className="text-xs text-zinc-500">Loading feeds...</p>
+        <p className="text-xs theme-muted">Loading feeds...</p>
       ) : feeds.length === 0 ? (
-        <p className="text-xs text-zinc-500">No feeds saved yet.</p>
+        <p className="text-xs theme-muted">No feeds saved yet.</p>
       ) : (
         <div className="space-y-2">
           {feeds.map((feed) => (
             <div
               key={feed}
-              className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm"
+              className="flex items-center justify-between rounded-lg border theme-border theme-surface-2 px-3 py-2 text-sm"
             >
-              <span className="truncate text-zinc-700">{feed}</span>
+              <span className="truncate text-[var(--foreground)]">{feed}</span>
               <Button variant="ghost" size="sm" onClick={() => removeFeed(feed)}>
                 Remove
               </Button>

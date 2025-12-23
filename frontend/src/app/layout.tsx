@@ -17,6 +17,19 @@ export const metadata: Metadata = {
   description: "Compliance automation command center for small businesses.",
 };
 
+const themeScript = `
+(() => {
+  try {
+    const stored = localStorage.getItem("safescale_theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const theme = stored || (prefersDark ? "dark" : "light");
+    document.documentElement.dataset.theme = theme;
+  } catch (error) {
+    // Ignore theme boot errors.
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -24,6 +37,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

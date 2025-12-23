@@ -9,11 +9,14 @@ export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Progress({ value, className, ...props }: ProgressProps) {
   return (
     <div
-      className={cn("relative h-2 w-full overflow-hidden rounded-full bg-zinc-200", className)}
+      className={cn(
+        "relative h-2 w-full overflow-hidden rounded-full bg-[var(--progress-bg)]",
+        className
+      )}
       {...props}
     >
       <div
-        className="h-full rounded-full bg-emerald-500 transition-all"
+        className="h-full rounded-full bg-[var(--accent)] transition-all"
         style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
       />
     </div>

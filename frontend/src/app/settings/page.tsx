@@ -13,7 +13,7 @@ export default async function SettingsPage() {
   const hasAuth = Boolean(await getServerAuthToken());
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#d9f5e3,_#f7f6f2_40%,_#f2f6ff_100%)] text-zinc-900">
+    <div className="min-h-screen theme-page">
       <div className="relative mx-auto max-w-5xl px-6 pb-16 pt-10">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -21,7 +21,7 @@ export default async function SettingsPage() {
               SafeScale AI
             </p>
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Settings</h1>
-            <p className="text-base text-zinc-600">
+            <p className="text-base theme-muted">
               Manage API access, embeddings, and MCP integrations.
             </p>
           </div>
@@ -37,7 +37,7 @@ export default async function SettingsPage() {
         ) : null}
 
         <section className="mt-8 space-y-6">
-          <Card className="bg-white/90">
+          <Card className="bg-[var(--surface)]">
             <CardHeader>
             <CardTitle>Account access</CardTitle>
             <CardDescription>Log in or create a new account.</CardDescription>
@@ -47,7 +47,7 @@ export default async function SettingsPage() {
           </CardContent>
         </Card>
 
-          <Card className="bg-white/90">
+          <Card className="bg-[var(--surface)]">
             <CardHeader>
               <CardTitle>Embeddings</CardTitle>
               <CardDescription>Adjust similarity thresholds for policy audits.</CardDescription>
@@ -57,7 +57,7 @@ export default async function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/90">
+          <Card className="bg-[var(--surface)]">
             <CardHeader>
               <CardTitle>MCP email connector</CardTitle>
               <CardDescription>Inspect the local MBOX connector.</CardDescription>
@@ -67,7 +67,7 @@ export default async function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/90">
+          <Card className="bg-[var(--surface)]">
             <CardHeader>
               <CardTitle>Scraper controls</CardTitle>
               <CardDescription>Manually sync the regulatory scraper.</CardDescription>
@@ -75,10 +75,10 @@ export default async function SettingsPage() {
             <CardContent>
               <div className="space-y-4">
                 <ScraperTrigger />
-                <div className="border-t border-zinc-200 pt-4">
+                <div className="border-t theme-border pt-4">
                   <div className="space-y-2">
-                    <p className="text-sm font-semibold text-zinc-900">Feed sources</p>
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-sm font-semibold text-[var(--foreground)]">Feed sources</p>
+                    <p className="text-xs theme-muted">
                       Add or remove RSS/Atom feeds for the scraper.
                     </p>
                   </div>

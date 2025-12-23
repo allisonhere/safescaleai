@@ -117,7 +117,7 @@ export function AuthPanel() {
             onChange={(event) => setEmail(event.target.value)}
             type="email"
             placeholder="you@company.com"
-            className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:border-emerald-400 focus:outline-none"
+            className="w-full rounded-lg border theme-input px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none"
           />
         </div>
         <div className="space-y-2">
@@ -130,7 +130,7 @@ export function AuthPanel() {
             type="password"
             placeholder="••••••••"
             maxLength={128}
-            className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:border-emerald-400 focus:outline-none"
+            className="w-full rounded-lg border theme-input px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none"
           />
         </div>
       </div>
@@ -143,7 +143,7 @@ export function AuthPanel() {
           onChange={(event) => setOrgName(event.target.value)}
           type="text"
           placeholder="Acme"
-          className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:border-emerald-400 focus:outline-none"
+          className="w-full rounded-lg border theme-input px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none"
         />
       </div>
       <div className="flex flex-wrap gap-3">
@@ -157,7 +157,7 @@ export function AuthPanel() {
           Sign out
         </Button>
       </div>
-      <p className={`text-xs ${status === "error" ? "text-rose-600" : "text-zinc-500"}`}>
+      <p className={`text-xs ${status === "error" ? "text-rose-600" : "theme-muted"}`}>
         {helper}
       </p>
     </div>
