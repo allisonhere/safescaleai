@@ -107,3 +107,14 @@ class Organization(Base):
     name: Mapped[str] = mapped_column(String(200))
     api_key: Mapped[str] = mapped_column(String(200), unique=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class User(Base):
+    __tablename__ = "app_user"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    org_id: Mapped[int] = mapped_column(ForeignKey("organization.id"), index=True)
+    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
+    hashed_password: Mapped[str] = mapped_column(String(255))
+    is_active: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

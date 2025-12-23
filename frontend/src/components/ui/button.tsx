@@ -10,8 +10,8 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: "bg-emerald-600 text-white hover:bg-emerald-700",
-        secondary: "bg-white text-zinc-900 border border-zinc-200 hover:bg-zinc-50",
-        ghost: "text-zinc-700 hover:bg-zinc-100",
+        secondary: "bg-emerald-50 text-emerald-900 border border-emerald-200 hover:bg-emerald-100",
+        ghost: "border border-emerald-200 text-emerald-800 hover:bg-emerald-50",
       },
       size: {
         sm: "h-9 px-4",

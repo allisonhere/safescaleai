@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { apiHeaders } from "@/lib/api";
 import type { PolicyGap, PolicyAuditRecord } from "@shared/contracts/policy-audit";
@@ -26,6 +27,19 @@ type AuditReportViewerProps = {
   auditId: number;
   initialReport?: PolicyAuditRecord;
 };
+
+function severityClassName(severity?: string): string {
+  if (severity === "high") {
+    return "bg-rose-100 text-rose-700";
+  }
+  if (severity === "low") {
+    return "bg-emerald-100 text-emerald-700";
+  }
+  if (severity === "medium") {
+    return "bg-amber-100 text-amber-700";
+  }
+  return "bg-zinc-100 text-zinc-600";
+}
 
 export function AuditReportViewer({ auditId, initialReport }: AuditReportViewerProps) {
   const [report, setReport] = React.useState<AuditReport | null>(initialReport ?? null);
@@ -86,7 +100,13 @@ export function AuditReportViewer({ auditId, initialReport }: AuditReportViewerP
             <p className="text-xs font-semibold text-zinc-500">Gaps</p>
             <ul className="list-disc pl-5">
               {report.gaps.map((gap) => (
-                <li key={gap.checklist_item}>{gap.checklist_item}</li>
+                <li key={gap.checklist_item}>
+                  <Badge className={`mr-2 ${severityClassName(gap.severity)}`}>
+                    {(gap.severity ?? "medium").toUpperCase()}
+                  </Badge>
+                  <span className="font-medium">Missing:</span> {gap.checklist_item}
+                  {gap.reason ? <span className="text-xs text-zinc-500"> — {gap.reason}</span> : null}
+                </li>
               ))}
             </ul>
           </div>

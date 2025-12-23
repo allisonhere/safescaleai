@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     app_name: str = "SafeScale AI Backend"
     database_url: str = "postgresql+asyncpg://safescale:safescale_dev@localhost:5432/safescale"
     admin_bootstrap_token: str | None = None
+    jwt_secret: str = "dev-secret-change-me"
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_minutes: int = 60 * 24
     scraper_urls: list[str] = [
         "https://www.ftc.gov/news-events/news/press-releases",
         "https://oag.ca.gov/privacy",

@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.audit import router as audit_router
+from app.api.auth import router as auth_router
 from app.api.billing import router as billing_router
 from app.api.debug import router as debug_router
 from app.api.dashboard import router as dashboard_router
@@ -48,7 +49,6 @@ async def lifespan(app: FastAPI):
                 scraper_loop(
                     AsyncSessionLocal,
                     settings.scraper_urls,
-                    settings.scraper_feed_urls,
                     org_id,
                 )
             )
@@ -79,6 +79,7 @@ app.add_middleware(
 )
 
 app.include_router(health_router)
+app.include_router(auth_router)
 app.include_router(audit_router)
 app.include_router(dashboard_router)
 app.include_router(scraper_router)

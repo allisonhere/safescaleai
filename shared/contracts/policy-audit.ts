@@ -1,6 +1,7 @@
 export type PolicyGap = {
   checklist_item: string;
   reason: string;
+  severity?: "low" | "medium" | "high";
 };
 
 export type PolicyAuditBase = {

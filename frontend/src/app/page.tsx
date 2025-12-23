@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { AlertsHeaderActions } from "@/components/alerts-header-actions";
 import { HeaderActions } from "@/components/header-actions";
 import { PolicyAuditPanel } from "@/components/policy-audit-panel";
 import type { AuditLogRead } from "@shared/contracts/audit";
@@ -10,7 +11,7 @@ import type { UsageSummary } from "@shared/contracts/billing";
 import type { ComplianceDashboard } from "@shared/contracts/compliance";
 import type { PolicyAuditRecord } from "@shared/contracts/policy-audit";
 import type { ScraperStatus } from "@shared/contracts/scraper";
-import { apiHeadersServer, getServerApiKey } from "@/lib/api-server";
+import { apiHeadersServer, getServerAuthToken } from "@/lib/api-server";
 
 async function loadDashboard(): Promise<ComplianceDashboard | null> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -101,8 +102,8 @@ function toHostname(url: string): string {
 }
 
 export default async function Home() {
-  const apiKey = await getServerApiKey();
-  const hasApiKey = Boolean(apiKey);
+  const authToken = await getServerAuthToken();
+  const hasAuth = Boolean(authToken);
   const dashboard = await loadDashboard();
   const auditTrail = await loadAuditTrail();
   const usage = await loadUsage();
@@ -139,9 +140,9 @@ export default async function Home() {
           </div>
           <HeaderActions />
         </header>
-        {!hasApiKey ? (
+        {!hasAuth ? (
           <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-800">
-            Add your org API key to load live data from the backend.
+            Sign in to load live data from the backend.
           </div>
         ) : null}
 
@@ -188,9 +189,9 @@ export default async function Home() {
                 <div className="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/60 px-4 py-4 text-sm text-emerald-800">
                   <p className="font-semibold">No score available yet.</p>
                   <p className="mt-1 text-emerald-700">
-                    {hasApiKey
+                    {hasAuth
                       ? "Run a scan to generate your first score."
-                      : "Add an API key to load your compliance data."}
+                      : "Sign in to load your compliance data."}
                   </p>
                 </div>
               )}
@@ -204,18 +205,21 @@ export default async function Home() {
 
         <section className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <Card>
-            <CardHeader>
-              <CardTitle>Active regulatory alerts</CardTitle>
-              <CardDescription>Monitored by the autonomous agentic scraper.</CardDescription>
+            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle>Active regulatory alerts</CardTitle>
+                <CardDescription>Monitored by the autonomous agentic scraper.</CardDescription>
+              </div>
+              <AlertsHeaderActions />
             </CardHeader>
             <CardContent className="space-y-4">
               {alerts.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-4 text-sm text-zinc-600">
                   <p className="font-semibold text-zinc-800">No alerts yet.</p>
                   <p className="mt-1">
-                    {hasApiKey
+                    {hasAuth
                       ? "Run the scraper to populate regulatory alerts."
-                      : "Add an API key to fetch alerts from your backend."}
+                      : "Sign in to fetch alerts from your backend."}
                   </p>
                 </div>
               ) : (
@@ -239,13 +243,21 @@ export default async function Home() {
                         </Badge>
                         <span className="text-xs text-zinc-500">{alert.date}</span>
                       </div>
-                      <p className="text-base font-semibold text-zinc-900">{alert.title}</p>
-                      <p className="text-sm text-zinc-500">{alert.summary}</p>
-                    </div>
-                    <div className="text-right text-xs text-zinc-500">
-                      <p>Source</p>
-                      <p className="font-semibold text-zinc-800">{alert.source}</p>
-                    </div>
+                    <p className="text-base font-semibold text-zinc-900">{alert.title}</p>
+                    <p className="text-sm text-zinc-500">{alert.summary}</p>
+                    <a
+                      href={alert.source_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs font-semibold text-emerald-700 hover:text-emerald-600"
+                    >
+                      Read article
+                    </a>
+                  </div>
+                  <div className="text-right text-xs text-zinc-500">
+                    <p>Source</p>
+                    <p className="font-semibold text-zinc-800">{alert.source}</p>
+                  </div>
                   </div>
                 ))
               )}
@@ -306,9 +318,9 @@ export default async function Home() {
                   <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-3 text-zinc-600">
                     <p className="font-semibold text-zinc-800">Scraper status unavailable.</p>
                     <p className="mt-1 text-xs">
-                      {hasApiKey
+                      {hasAuth
                         ? "Run the scraper to generate a status snapshot."
-                        : "Add an API key to load scraper status."}
+                        : "Sign in to load scraper status."}
                     </p>
                   </div>
                 )}
@@ -347,9 +359,9 @@ export default async function Home() {
                   <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-4 text-sm text-zinc-600">
                     <p className="font-semibold text-zinc-800">No usage data yet.</p>
                     <p className="mt-1">
-                      {hasApiKey
+                      {hasAuth
                         ? "Run a scan to start tracking usage."
-                        : "Add an API key to load billing data."}
+                        : "Sign in to load billing data."}
                     </p>
                   </div>
                 )}
@@ -365,9 +377,9 @@ export default async function Home() {
                   <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-4 text-sm text-zinc-600">
                     <p className="font-semibold text-zinc-800">No audit events yet.</p>
                     <p className="mt-1">
-                      {hasApiKey
+                      {hasAuth
                         ? "Trigger a scan or policy audit to populate the log."
-                        : "Add an API key to load your audit history."}
+                        : "Sign in to load your audit history."}
                     </p>
                   </div>
                 ) : (

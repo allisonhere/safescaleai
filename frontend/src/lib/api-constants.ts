@@ -1,2 +1,2 @@
-export const API_KEY_STORAGE = "safescale_api_key";
-export const API_KEY_COOKIE = "safescale_api_key";
+export const AUTH_TOKEN_STORAGE = "safescale_auth_token";
+export const AUTH_TOKEN_COOKIE = "safescale_auth_token";

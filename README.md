@@ -33,14 +33,25 @@ Backend example:
 ```bash
 export DATABASE_URL="postgresql+asyncpg://safescale:safescale_dev@localhost:5432/safescale"
 export ADMIN_BOOTSTRAP_TOKEN="change-me"
+export JWT_SECRET="change-me"
 export OPENAI_API_KEY="..."
 ```
 
 ### Defaults
 
-Migrations seed a default org with API key `dev-api-key`.
+Migrations seed a default org with API key `dev-api-key` (still supported).
 
-To create additional orgs, set `ADMIN_BOOTSTRAP_TOKEN` and call:
+To create orgs through auth, use the register endpoint (or use the Settings UI):
+
+```bash
+curl -X POST http://localhost:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"password123","org_name":"Acme"}'
+```
+
+Then sign in via the Settings page to store the session token in the browser.
+
+For admin-created orgs, set `ADMIN_BOOTSTRAP_TOKEN` and call:
 
 ```bash
 curl -X POST http://localhost:8000/admin/orgs \

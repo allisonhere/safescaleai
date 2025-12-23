@@ -1,25 +1,29 @@
 import { cookies } from "next/headers";
 
-import { API_KEY_COOKIE } from "@/lib/api-constants";
+import { AUTH_TOKEN_COOKIE } from "@/lib/api-constants";
 
-export async function getServerApiKey(): Promise<string | null> {
+export async function getServerAuthToken(): Promise<string | null> {
   try {
     const store = await Promise.resolve(cookies() as unknown);
     const getter =
       store && typeof (store as { get?: (name: string) => { value?: string } | undefined }).get === "function"
         ? (store as { get: (name: string) => { value?: string } | undefined }).get
         : null;
-    const cookieKey = getter ? getter(API_KEY_COOKIE)?.value : null;
-    return cookieKey ?? process.env.NEXT_PUBLIC_API_KEY ?? null;
+    const cookieToken = getter ? getter(AUTH_TOKEN_COOKIE)?.value : null;
+    return cookieToken ?? null;
   } catch {
-    return process.env.NEXT_PUBLIC_API_KEY ?? null;
+    return null;
   }
 }
 
 export async function apiHeadersServer(): Promise<Record<string, string>> {
-  const apiKey = await getServerApiKey();
-  if (!apiKey) {
-    return {};
+  const token = await getServerAuthToken();
+  if (token) {
+    return { Authorization: `Bearer ${token}` };
   }
-  return { "X-API-Key": apiKey };
+  const envKey = process.env.NEXT_PUBLIC_API_KEY;
+  if (envKey) {
+    return { "X-API-Key": envKey };
+  }
+  return {};
 }

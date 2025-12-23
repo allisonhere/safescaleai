@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 class PolicyGap(BaseModel):
     checklist_item: str
     reason: str
+    severity: str = "medium"
 
 
 class PolicyAuditBase(BaseModel):

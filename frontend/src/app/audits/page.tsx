@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AuditDownloadButton } from "@/components/audit-download-button";
 import { AuditReportViewer } from "@/components/audit-report-viewer";
 import type { PolicyAuditRecord } from "@shared/contracts/policy-audit";
-import { apiHeadersServer, getServerApiKey } from "@/lib/api-server";
+import { apiHeadersServer, getServerAuthToken } from "@/lib/api-server";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -37,7 +37,7 @@ function ratingColor(rating: string): string {
 }
 
 export default async function AuditsPage() {
-  const hasApiKey = Boolean(await getServerApiKey());
+  const hasAuth = Boolean(await getServerAuthToken());
   const audits = await loadAudits();
 
   return (
@@ -69,9 +69,9 @@ export default async function AuditsPage() {
               <CardHeader>
                 <CardTitle>No audits yet</CardTitle>
                 <CardDescription>
-                  {hasApiKey
+                  {hasAuth
                     ? "Upload a PDF on the dashboard to generate your first audit."
-                    : "Add an API key to load audit history."}
+                    : "Sign in to load audit history."}
                 </CardDescription>
               </CardHeader>
               <CardContent>

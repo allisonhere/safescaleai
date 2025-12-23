@@ -10,6 +10,7 @@ from urllib.parse import urljoin
 
 from app.core.config import settings
 from app.models.compliance import RegulatoryAlert, ScraperRun
+from app.services.settings import get_scraper_feed_urls
 
 SCRAPER_INTERVAL_SECONDS = 3600
 
@@ -203,12 +204,11 @@ def next_run_at(last_finished: datetime | None) -> str | None:
     return (last_finished + timedelta(seconds=SCRAPER_INTERVAL_SECONDS)).isoformat()
 
 
-async def scraper_loop(
-    session_factory, urls: list[str], feed_urls: list[str], org_id: int
-) -> None:
+async def scraper_loop(session_factory, urls: list[str], org_id: int) -> None:
     while True:
         started_at = datetime.utcnow()
         async with session_factory() as session:
+            feed_urls = await get_scraper_feed_urls(session, org_id)
             url_scanned, url_created, url_notes, discovered_feeds = await scrape_urls(
                 session, urls, org_id
             )

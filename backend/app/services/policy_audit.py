@@ -54,6 +54,36 @@ def _score_rating(score: int) -> str:
     return "High risk"
 
 
+def _gap_severity(text: str) -> str:
+    lowered = text.lower()
+    high_keywords = [
+        "incident",
+        "breach",
+        "hipaa",
+        "gdpr",
+        "ccpa",
+        "cpra",
+        "access control",
+        "access controls",
+        "access review",
+        "user provisioning",
+        "data retention",
+        "data classification",
+        "vendor risk",
+        "security",
+    ]
+    low_keywords = [
+        "employee handbook",
+        "remote work",
+        "confidentiality",
+    ]
+    if any(keyword in lowered for keyword in high_keywords):
+        return "high"
+    if any(keyword in lowered for keyword in low_keywords):
+        return "low"
+    return "medium"
+
+
 async def _find_matches(
     session: AsyncSession,
     checklist: Iterable[ChecklistItem],
@@ -89,7 +119,13 @@ async def _find_matches(
         if distance is not None and distance <= threshold:
             matched_items.append(item.text)
         else:
-            gaps.append(PolicyGap(checklist_item=item.text, reason="No close match in submitted PDF"))
+            gaps.append(
+                PolicyGap(
+                    checklist_item=item.text,
+                    reason="Missing in submitted PDF",
+                    severity=_gap_severity(item.text),
+                )
+            )
 
     return matched_items, gaps
 

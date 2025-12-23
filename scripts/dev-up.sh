@@ -18,6 +18,7 @@ MIGRATIONS=(
   "/migrations/005_reset_checklist_embeddings.sql"
   "/migrations/008_reset_app_setting.sql"
   "/migrations/009_add_classification.sql"
+  "/migrations/010_create_users.sql"
 )
 
 for migration in "${MIGRATIONS[@]}"; do

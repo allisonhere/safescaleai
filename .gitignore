@@ -17,6 +17,8 @@ node_modules/
 # Runtime artifacts
 logs/
 *.sqlite3
+backend/storage/
+docs/
 
 # OS/editor
 Thumbs.db

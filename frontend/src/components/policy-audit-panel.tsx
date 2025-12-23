@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,21 +20,25 @@ type PolicyAuditPanelProps = {
 };
 
 export function PolicyAuditPanel({ initialAudit }: PolicyAuditPanelProps) {
+  const router = useRouter();
   const [audit, setAudit] = React.useState<PolicyAuditRecord | null>(initialAudit);
   const [isUploading, setIsUploading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [scanMessage, setScanMessage] = React.useState<string | null>(null);
+  const [scanLoading, setScanLoading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleUpload = async () => {
+  const handleUpload = async (file?: File) => {
     setError(null);
-    const file = fileInputRef.current?.files?.[0];
-    if (!file) {
+    setScanMessage(null);
+    const selected = file ?? fileInputRef.current?.files?.[0];
+    if (!selected) {
       setError("Select a PDF file to audit.");
       return;
     }
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", selected);
 
     setIsUploading(true);
     try {
@@ -55,6 +60,28 @@ export function PolicyAuditPanel({ initialAudit }: PolicyAuditPanelProps) {
     }
   };
 
+  const runScan = async () => {
+    setScanMessage(null);
+    setError(null);
+    setScanLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/scan/run`, {
+        method: "POST",
+        headers: apiHeaders(),
+      });
+      if (!response.ok) {
+        throw new Error("Scan failed");
+      }
+      const data = (await response.json()) as { score: number; rating: string };
+      setScanMessage(`Scan complete: ${data.score} (${data.rating})`);
+      setTimeout(() => router.refresh(), 800);
+    } catch (scanError) {
+      setScanMessage(scanError instanceof Error ? scanError.message : "Scan failed");
+    } finally {
+      setScanLoading(false);
+    }
+  };
+
   return (
     <Card className="bg-white/90">
       <CardHeader>
@@ -62,18 +89,26 @@ export function PolicyAuditPanel({ initialAudit }: PolicyAuditPanelProps) {
         <CardDescription>Upload a PDF to compare against the Gold Standard checklist.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf"
-            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm"
-          />
-          <Button onClick={handleUpload} disabled={isUploading}>
-            {isUploading ? "Auditing..." : "Run audit"}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+          >
+            {isUploading ? "Uploading..." : "Upload PDF"}
+          </Button>
+          <Button variant="secondary" onClick={runScan} disabled={scanLoading}>
+            {scanLoading ? "Running scan..." : "Run compliance scan"}
           </Button>
         </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/pdf"
+          onChange={(event) => handleUpload(event.target.files?.[0])}
+          className="hidden"
+        />
         {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+        {scanMessage ? <p className="text-sm text-zinc-500">{scanMessage}</p> : null}
 
         {audit ? (
           <div className="space-y-3 rounded-2xl border border-zinc-100 bg-zinc-50 px-4 py-4">

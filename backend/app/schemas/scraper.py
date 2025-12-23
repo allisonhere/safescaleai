@@ -19,3 +19,7 @@ class ScraperStatus(BaseModel):
     scanned: int
     alerts_created: int
     notes: list[str]
+
+
+class ScraperFeeds(BaseModel):
+    feeds: list[str] = Field(default_factory=list)

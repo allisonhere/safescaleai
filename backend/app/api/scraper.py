@@ -9,9 +9,10 @@ from app.core.config import settings
 from app.db import get_session
 from app.models.compliance import Organization, ScraperRun
 from app.schemas.audit import AuditLogCreate
-from app.schemas.scraper import ScraperRunRequest, ScraperRunResponse, ScraperStatus
+from app.schemas.scraper import ScraperFeeds, ScraperRunRequest, ScraperRunResponse, ScraperStatus
 from app.services.audit import log_audit_event
 from app.services.scraper import next_run_at, record_scraper_run, scrape_feeds, scrape_urls
+from app.services.settings import get_scraper_feed_urls, set_scraper_feed_urls
 
 router = APIRouter(prefix="/scraper", tags=["scraper"])
 
@@ -27,7 +28,8 @@ async def run_scraper(
     url_scanned, url_created, url_notes, discovered_feeds = await scrape_urls(
         session, urls, org.id
     )
-    combined_feeds = list(dict.fromkeys(settings.scraper_feed_urls + discovered_feeds))
+    feed_urls = await get_scraper_feed_urls(session, org.id)
+    combined_feeds = list(dict.fromkeys(feed_urls + discovered_feeds))
     feed_scanned, feed_created, feed_notes = await scrape_feeds(
         session, combined_feeds, org.id
     )
@@ -69,3 +71,23 @@ async def scraper_status(
         alerts_created=record.alerts_created if record else 0,
         notes=record.notes if record else [],
     )
+
+
+@router.get("/feeds", response_model=ScraperFeeds)
+async def read_scraper_feeds(
+    session: AsyncSession = Depends(get_session),
+    org: Organization = Depends(get_current_org),
+) -> ScraperFeeds:
+    feeds = await get_scraper_feed_urls(session, org.id)
+    return ScraperFeeds(feeds=feeds)
+
+
+@router.put("/feeds", response_model=ScraperFeeds)
+async def update_scraper_feeds(
+    payload: ScraperFeeds,
+    session: AsyncSession = Depends(get_session),
+    org: Organization = Depends(get_current_org),
+) -> ScraperFeeds:
+    await set_scraper_feed_urls(session, org.id, payload.feeds)
+    feeds = await get_scraper_feed_urls(session, org.id)
+    return ScraperFeeds(feeds=feeds)

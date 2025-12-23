@@ -1,3 +1,5 @@
+import json
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,3 +38,29 @@ async def get_embedding_threshold(session: AsyncSession, org_id: int) -> float:
         return float(value)
     except ValueError:
         return settings.embedding_similarity_threshold
+
+
+async def get_scraper_feed_urls(session: AsyncSession, org_id: int) -> list[str]:
+    value = await get_setting(session, org_id, "scraper_feed_urls")
+    if value is None:
+        return settings.scraper_feed_urls
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError:
+        return settings.scraper_feed_urls
+    if not isinstance(parsed, list):
+        return settings.scraper_feed_urls
+    cleaned = [item.strip() for item in parsed if isinstance(item, str) and item.strip()]
+    return cleaned
+
+
+async def set_scraper_feed_urls(session: AsyncSession, org_id: int, urls: list[str]) -> AppSetting:
+    cleaned = []
+    seen = set()
+    for item in urls:
+        normalized = item.strip()
+        if not normalized or normalized in seen:
+            continue
+        cleaned.append(normalized)
+        seen.add(normalized)
+    return await set_setting(session, org_id, "scraper_feed_urls", json.dumps(cleaned))
