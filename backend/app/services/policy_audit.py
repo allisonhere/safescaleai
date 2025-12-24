@@ -16,7 +16,7 @@ from app.services.classifier import classify_document
 from app.services.checklist import ensure_checklist
 from app.services.embeddings import EmbeddingProvider
 from app.services.guardrail import apply_guardrail
-from app.services.settings import get_embedding_threshold
+from app.services.settings import get_embedding_threshold, get_industry_setting
 from app.services.storage import save_policy_file
 
 
@@ -139,12 +139,14 @@ async def run_policy_audit(
 ) -> PolicyAuditRecord:
     text = _extract_text_from_pdf(pdf_bytes)
     chunks = _chunk_text(text)
-    classification = classify_document(text)
+    industry = await get_industry_setting(session, org_id)
+    classification = classify_document(text, industry=industry)
     checklist_result = await session.execute(
         select(ChecklistItem).where(
             ChecklistItem.org_id == org_id,
             ChecklistItem.doc_type.in_([classification.doc_type, "general"]),
             ChecklistItem.jurisdiction.in_([classification.jurisdiction, "general"]),
+            ChecklistItem.industry.in_([industry, "general"]),
         )
     )
     checklist = list(checklist_result.scalars().all())
@@ -193,6 +195,7 @@ async def run_policy_audit(
         classifier_notes={
             "reasoning": classification.reasoning,
             "provider": settings.classifier_provider,
+            "industry": industry,
         },
     )
     session.add(record)

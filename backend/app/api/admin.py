@@ -4,15 +4,25 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import get_current_org
 from app.core.config import settings
 from app.db import get_session
-from app.models.compliance import Organization
+from app.models.audit import AuditLog
+from app.models.compliance import (
+    AppSetting,
+    ChecklistItem,
+    ComplianceScore,
+    Organization,
+    PolicyAudit,
+    RegulatoryAlert,
+    ScraperRun,
+    UsageEvent,
+)
 from app.services.checklist import reset_checklist
-from app.services.settings import get_embedding_threshold, set_setting
+from app.services.settings import get_embedding_threshold, get_industry_setting, set_setting
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -21,6 +31,10 @@ admin_token_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
 
 class EmbeddingThreshold(BaseModel):
     value: float = Field(ge=0.0, le=1.0)
+
+
+class IndustrySetting(BaseModel):
+    value: str = Field(min_length=2, max_length=80)
 
 
 class OrgCreate(BaseModel):
@@ -40,6 +54,18 @@ class OrgApiKey(BaseModel):
 
 class ChecklistResetResponse(BaseModel):
     items: int
+
+
+class OrgResetResponse(BaseModel):
+    audits: int
+    alerts: int
+    scores: int
+    usage_events: int
+    scraper_runs: int
+    audit_logs: int
+    settings: int
+    checklists_cleared: int
+    checklist_seeded: int
 
 
 async def require_admin_token(
@@ -123,3 +149,52 @@ async def update_embedding_threshold(
 ) -> EmbeddingThreshold:
     await set_setting(session, org.id, "embedding_similarity_threshold", str(payload.value))
     return EmbeddingThreshold(value=payload.value)
+
+
+@router.get("/industry", response_model=IndustrySetting)
+async def read_industry_setting(
+    session: AsyncSession = Depends(get_session),
+    org: Organization = Depends(get_current_org),
+) -> IndustrySetting:
+    value = await get_industry_setting(session, org.id)
+    return IndustrySetting(value=value)
+
+
+@router.put("/industry", response_model=IndustrySetting)
+async def update_industry_setting(
+    payload: IndustrySetting,
+    session: AsyncSession = Depends(get_session),
+    org: Organization = Depends(get_current_org),
+) -> IndustrySetting:
+    await set_setting(session, org.id, "industry", payload.value)
+    return IndustrySetting(value=payload.value)
+
+
+@router.post("/org/reset", response_model=OrgResetResponse)
+async def reset_org_data(
+    session: AsyncSession = Depends(get_session),
+    org: Organization = Depends(get_current_org),
+) -> OrgResetResponse:
+    audits = await session.execute(delete(PolicyAudit).where(PolicyAudit.org_id == org.id))
+    alerts = await session.execute(delete(RegulatoryAlert).where(RegulatoryAlert.org_id == org.id))
+    scores = await session.execute(delete(ComplianceScore).where(ComplianceScore.org_id == org.id))
+    usage_events = await session.execute(delete(UsageEvent).where(UsageEvent.org_id == org.id))
+    scraper_runs = await session.execute(delete(ScraperRun).where(ScraperRun.org_id == org.id))
+    audit_logs = await session.execute(delete(AuditLog).where(AuditLog.org_id == org.id))
+    settings = await session.execute(delete(AppSetting).where(AppSetting.org_id == org.id))
+    checklists = await session.execute(delete(ChecklistItem).where(ChecklistItem.org_id == org.id))
+    await session.commit()
+
+    seeded = await reset_checklist(session, org.id)
+
+    return OrgResetResponse(
+        audits=audits.rowcount or 0,
+        alerts=alerts.rowcount or 0,
+        scores=scores.rowcount or 0,
+        usage_events=usage_events.rowcount or 0,
+        scraper_runs=scraper_runs.rowcount or 0,
+        audit_logs=audit_logs.rowcount or 0,
+        settings=settings.rowcount or 0,
+        checklists_cleared=checklists.rowcount or 0,
+        checklist_seeded=len(seeded),
+    )

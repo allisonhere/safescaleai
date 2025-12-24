@@ -64,3 +64,8 @@ async def set_scraper_feed_urls(session: AsyncSession, org_id: int, urls: list[s
         cleaned.append(normalized)
         seen.add(normalized)
     return await set_setting(session, org_id, "scraper_feed_urls", json.dumps(cleaned))
+
+
+async def get_industry_setting(session: AsyncSession, org_id: int) -> str:
+    value = await get_setting(session, org_id, "industry")
+    return value if value else "general"

@@ -29,6 +29,37 @@ type AuditReportViewerProps = {
   initialReport?: PolicyAuditRecord;
 };
 
+const DOC_TYPE_LABELS: Record<string, string> = {
+  general: "General",
+  policy: "Policy",
+  procedure: "Procedure",
+  risk_assessment: "Risk assessment",
+  control_mapping: "Control mapping",
+  audit_report: "Audit report",
+  incident_response: "Incident response",
+  business_continuity: "Business continuity",
+  privacy_policy: "Privacy notice",
+  security_architecture: "Security architecture",
+  vendor_program: "Vendor program",
+  training_attestation: "Training/attestation",
+  legal_contract: "Legal/contract",
+  compliance_report: "Compliance report",
+  employee_handbook: "Employee handbook",
+  formulary: "Formulary",
+};
+
+function formatDocType(value?: string): string {
+  if (!value) {
+    return "General";
+  }
+  return (
+    DOC_TYPE_LABELS[value] ??
+    value
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase())
+  );
+}
+
 function severityClassName(severity?: string): string {
   if (severity === "high") {
     return "bg-rose-100 text-rose-700";
@@ -107,7 +138,7 @@ export function AuditReportViewer({ auditId, initialReport }: AuditReportViewerP
           <p className="text-xs theme-muted">{new Date(report.created_at).toLocaleString()}</p>
           {report.doc_type || report.jurisdiction ? (
             <p className="mt-2 text-xs theme-muted">
-              Classification: {report.doc_type ?? "general"} · {report.jurisdiction ?? "general"}
+              Classification: {formatDocType(report.doc_type)} · {report.jurisdiction ?? "general"}
             </p>
           ) : null}
           <div className="mt-4 rounded-lg border theme-border theme-surface-2 px-3 py-3">

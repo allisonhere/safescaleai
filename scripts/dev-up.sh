@@ -19,6 +19,7 @@ MIGRATIONS=(
   "/migrations/008_reset_app_setting.sql"
   "/migrations/009_add_classification.sql"
   "/migrations/010_create_users.sql"
+  "/migrations/011_add_industry.sql"
 )
 
 for migration in "${MIGRATIONS[@]}"; do

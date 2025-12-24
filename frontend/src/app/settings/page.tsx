@@ -2,7 +2,9 @@ import Link from "next/link";
 
 import { AuthPanel } from "@/components/auth-panel";
 import { EmbeddingSettingsPanel } from "@/components/embedding-settings-panel";
+import { IndustrySettingsPanel } from "@/components/industry-settings-panel";
 import { MCPEmailPanel } from "@/components/mcp-email-panel";
+import { OrgResetPanel } from "@/components/org-reset-panel";
 import { ScraperFeedsPanel } from "@/components/scraper-feeds-panel";
 import { ScraperTrigger } from "@/components/scraper-trigger";
 import { Button } from "@/components/ui/button";
@@ -47,6 +49,8 @@ export default async function SettingsPage() {
           </CardContent>
         </Card>
 
+          <IndustrySettingsPanel />
+
           <Card className="bg-[var(--surface)]">
             <CardHeader>
               <CardTitle>Embeddings</CardTitle>
@@ -56,6 +60,8 @@ export default async function SettingsPage() {
               <EmbeddingSettingsPanel />
             </CardContent>
           </Card>
+
+          <OrgResetPanel />
 
           <Card className="bg-[var(--surface)]">
             <CardHeader>

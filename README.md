@@ -37,6 +37,18 @@ export JWT_SECRET="change-me"
 export OPENAI_API_KEY="..."
 ```
 
+### Recent additions
+
+- Reports: CSV/PDF exports for audits and alerts, plus per-audit PDF reports.
+- Themes: light, dark, Jellyseerr, and Obsidian (default).
+- Settings: industry selector, embedding threshold, checklist reset, and a full org reset button for testing.
+
+If you have an existing database, run the latest migration before testing:
+
+```bash
+docker compose exec db psql -U safescale -d safescale -f /migrations/011_add_industry.sql
+```
+
 ### Defaults
 
 Migrations seed a default org with API key `dev-api-key` (still supported).

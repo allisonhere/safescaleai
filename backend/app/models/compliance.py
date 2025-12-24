@@ -52,6 +52,7 @@ class ChecklistItem(Base):
     org_id: Mapped[int] = mapped_column(ForeignKey("organization.id"), index=True)
     doc_type: Mapped[str] = mapped_column(String(80), default="general")
     jurisdiction: Mapped[str] = mapped_column(String(40), default="general")
+    industry: Mapped[str] = mapped_column(String(60), default="general")
     text: Mapped[str] = mapped_column(Text)
     embedding: Mapped[list[float]] = mapped_column(Vector(1536))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
