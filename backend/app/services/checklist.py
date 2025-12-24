@@ -25,6 +25,17 @@ DEFAULT_CHECKLIST = [
     ("general", "general", "Vendor risk management procedures are documented."),
     ("general", "general", "Data classification and handling guidelines are documented."),
     ("general", "general", "Access reviews and user provisioning workflows are documented."),
+    ("formulary", "general", "Formulary explains medication tier structure and cost sharing."),
+    ("formulary", "general", "Formulary lists covered medications with tier placement."),
+    ("formulary", "general", "Formulary describes prior authorization or step therapy rules."),
+    ("formulary", "general", "Formulary outlines exceptions or coverage request process."),
+    ("formulary", "general", "Formulary includes guidance for non-formulary or excluded drugs."),
+    ("formulary", "general", "Formulary defines generic vs brand naming conventions."),
+    ("formulary", "general", "Formulary explains specialty pharmacy or mail order requirements."),
+    ("formulary", "general", "Formulary includes quantity limits or utilization management notes."),
+    ("formulary", "general", "Formulary provides effective date and update cadence."),
+    ("formulary", "general", "Formulary specifies how to find in-network pharmacies."),
+    ("formulary", "general", "Formulary lists key therapeutic classes and categories."),
 ]
 
 
@@ -34,6 +45,10 @@ async def ensure_checklist(session: AsyncSession, org_id: int) -> list[Checklist
     if items:
         return items
 
+    return await seed_checklist(session, org_id)
+
+
+async def seed_checklist(session: AsyncSession, org_id: int) -> list[ChecklistItem]:
     embeddings = EmbeddingProvider()
     texts = [item[2] for item in DEFAULT_CHECKLIST]
     vectors = embeddings.embed_documents(texts)
@@ -50,3 +65,12 @@ async def ensure_checklist(session: AsyncSession, org_id: int) -> list[Checklist
     session.add_all(items)
     await session.commit()
     return items
+
+
+async def reset_checklist(session: AsyncSession, org_id: int) -> list[ChecklistItem]:
+    result = await session.execute(select(ChecklistItem).where(ChecklistItem.org_id == org_id))
+    items = list(result.scalars().all())
+    for item in items:
+        session.delete(item)
+    await session.commit()
+    return await seed_checklist(session, org_id)

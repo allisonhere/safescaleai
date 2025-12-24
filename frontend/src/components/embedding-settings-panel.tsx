@@ -13,6 +13,7 @@ export function EmbeddingSettingsPanel() {
   const [value, setValue] = React.useState(0.45);
   const [isSaving, setIsSaving] = React.useState(false);
   const [message, setMessage] = React.useState<string | null>(null);
+  const [isResetting, setIsResetting] = React.useState(false);
 
   const loadValue = React.useCallback(async () => {
     try {
@@ -53,6 +54,26 @@ export function EmbeddingSettingsPanel() {
     }
   };
 
+  const resetChecklist = async () => {
+    setIsResetting(true);
+    setMessage(null);
+    try {
+      const response = await fetch(`${API_URL}/admin/checklist/reset`, {
+        method: "POST",
+        headers: apiHeaders(),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to reset checklist");
+      }
+      const payload = (await response.json()) as { items: number };
+      setMessage(`Checklist reset (${payload.items} items).`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Reset failed");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <Card className="bg-[var(--surface)]">
       <CardHeader>
@@ -73,9 +94,14 @@ export function EmbeddingSettingsPanel() {
           onChange={(event) => setValue(Number(event.target.value))}
           className="w-full"
         />
-        <Button onClick={saveValue} disabled={isSaving}>
-          {isSaving ? "Saving..." : "Save threshold"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={saveValue} disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save threshold"}
+          </Button>
+          <Button variant="secondary" onClick={resetChecklist} disabled={isResetting}>
+            {isResetting ? "Resetting..." : "Reset checklist"}
+          </Button>
+        </div>
         {message ? <p className="text-xs theme-muted">{message}</p> : null}
       </CardContent>
     </Card>

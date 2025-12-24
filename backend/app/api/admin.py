@@ -11,6 +11,7 @@ from app.auth import get_current_org
 from app.core.config import settings
 from app.db import get_session
 from app.models.compliance import Organization
+from app.services.checklist import reset_checklist
 from app.services.settings import get_embedding_threshold, set_setting
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -35,6 +36,10 @@ class OrgCreated(BaseModel):
 
 class OrgApiKey(BaseModel):
     api_key: str
+
+
+class ChecklistResetResponse(BaseModel):
+    items: int
 
 
 async def require_admin_token(
@@ -90,6 +95,15 @@ async def rotate_org_key(
     session.add(org)
     await session.commit()
     return OrgApiKey(api_key=api_key)
+
+
+@router.post("/checklist/reset", response_model=ChecklistResetResponse)
+async def reset_org_checklist(
+    session: AsyncSession = Depends(get_session),
+    org: Organization = Depends(get_current_org),
+) -> ChecklistResetResponse:
+    items = await reset_checklist(session, org.id)
+    return ChecklistResetResponse(items=len(items))
 
 
 @router.get("/embeddings/threshold", response_model=EmbeddingThreshold)

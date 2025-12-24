@@ -18,7 +18,10 @@ def _heuristic_classify(text: str) -> DocumentClassification:
     jurisdiction = "general"
     reasons: list[str] = []
 
-    if "employee handbook" in lowered or "employee" in lowered and "handbook" in lowered:
+    if "formulary" in lowered or ("tier" in lowered and ("medication" in lowered or "drug" in lowered)):
+        doc_type = "formulary"
+        reasons.append("Detected formulary/medication tier language")
+    elif "employee handbook" in lowered or "employee" in lowered and "handbook" in lowered:
         doc_type = "employee_handbook"
         reasons.append("Detected employee handbook language")
     elif "privacy policy" in lowered or "privacy notice" in lowered:
@@ -55,7 +58,7 @@ def classify_document(text: str) -> DocumentClassification:
         client = OpenAI(api_key=settings.openai_api_key)
         prompt = (
             "Classify the document text into a JSON object with keys: "
-            "doc_type (employee_handbook, privacy_policy, incident_response, general), "
+            "doc_type (employee_handbook, privacy_policy, incident_response, formulary, general), "
             "jurisdiction (us-ca, us-hipaa, eu, general), "
             "reasoning (short string).\n\n"
             f"Text:\n{text[:4000]}"

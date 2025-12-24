@@ -8,6 +8,7 @@ from app.models.compliance import ComplianceScore, Organization, UsageEvent
 from app.schemas.audit import AuditLogCreate
 from app.schemas.scan import ComplianceScanResponse
 from app.services.audit import log_audit_event
+from app.services.scan import run_compliance_scan
 
 router = APIRouter(prefix="/scan", tags=["scan"])
 
@@ -17,9 +18,7 @@ async def run_scan(
     session: AsyncSession = Depends(get_session),
     org: Organization = Depends(get_current_org),
 ) -> ComplianceScanResponse:
-    score = 82
-    rating = "On track"
-    notes = ["Privacy controls validated", "Employee handbook needs review"]
+    score, rating, notes = await run_compliance_scan(session, org.id)
 
     session.add(ComplianceScore(score=score, rating=rating, org_id=org.id))
     session.add(
@@ -40,7 +39,7 @@ async def run_scan(
             action="compliance_scan",
             actor="system",
             summary=f"Compliance scan scored {score}",
-            metadata={"score": score},
+            metadata={"score": score, "notes": notes},
         ),
         org.id,
     )
