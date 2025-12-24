@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.audit import router as audit_router
 from app.api.auth import router as auth_router
+from app.api.reports import router as reports_router
 from app.api.billing import router as billing_router
 from app.api.debug import router as debug_router
 from app.api.dashboard import router as dashboard_router
@@ -81,6 +82,7 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(audit_router)
+app.include_router(reports_router)
 app.include_router(dashboard_router)
 app.include_router(scraper_router)
 app.include_router(policy_audit_router)

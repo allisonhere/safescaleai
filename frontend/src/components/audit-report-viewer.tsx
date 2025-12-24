@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DownloadFileButton } from "@/components/download-file-button";
 import { apiHeaders } from "@/lib/api";
 import type { PolicyGap, PolicyAuditRecord } from "@shared/contracts/policy-audit";
 
@@ -88,9 +89,17 @@ export function AuditReportViewer({ auditId, initialReport }: AuditReportViewerP
 
   return (
     <div className="space-y-2">
-      <Button size="sm" variant="secondary" onClick={toggle} disabled={loading}>
-        {loading ? "Loading..." : expanded ? "Hide report" : "View report"}
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="secondary" onClick={toggle} disabled={loading}>
+          {loading ? "Loading..." : expanded ? "Hide report" : "View report"}
+        </Button>
+        <DownloadFileButton
+          endpoint={`/policy/audits/${auditId}/report.pdf`}
+          filename={`policy-audit-${auditId}.pdf`}
+          label="Download PDF"
+          variant="ghost"
+        />
+      </div>
       {error ? <p className="text-xs text-rose-600">{error}</p> : null}
       {expanded && report ? (
         <div className="rounded-xl border theme-border theme-surface px-4 py-3 text-sm text-[var(--foreground)]">

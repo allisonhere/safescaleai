@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuditDownloadButton } from "@/components/audit-download-button";
 import { AuditReportViewer } from "@/components/audit-report-viewer";
+import { DownloadFileButton } from "@/components/download-file-button";
 import type { PolicyAuditRecord } from "@shared/contracts/policy-audit";
 import { apiHeadersServer, getServerAuthToken } from "@/lib/api-server";
 
@@ -57,6 +58,18 @@ export default async function AuditsPage() {
             <Button asChild variant="secondary">
               <Link href="/">Back to dashboard</Link>
             </Button>
+            <DownloadFileButton
+              endpoint="/reports/audits.csv"
+              filename="policy-audits.csv"
+              label="Export audits CSV"
+              variant="ghost"
+            />
+            <DownloadFileButton
+              endpoint="/reports/audits.pdf"
+              filename="policy-audits.pdf"
+              label="Export audits PDF"
+              variant="ghost"
+            />
             <Button asChild variant="ghost">
               <Link href="/settings">Settings</Link>
             </Button>

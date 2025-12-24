@@ -1,7 +1,12 @@
+from io import BytesIO
+
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 from app.core.config import settings
 from app.db import get_session
@@ -119,3 +124,70 @@ async def download_audit_report(
         "Content-Disposition": f'attachment; filename="policy-audit-{record.id}.json"'
     }
     return JSONResponse(content=payload, headers=headers)
+
+
+@router.get("/audits/{audit_id}/report.pdf")
+async def download_audit_report_pdf(
+    audit_id: int,
+    session: AsyncSession = Depends(get_session),
+    org: Organization = Depends(get_current_org),
+):
+    result = await session.execute(
+        select(PolicyAudit).where(PolicyAudit.id == audit_id, PolicyAudit.org_id == org.id)
+    )
+    record = result.scalar_one_or_none()
+    if not record:
+        raise HTTPException(status_code=404, detail="Audit not found")
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    y = height - 50
+    pdf.setFont("Helvetica-Bold", 14)
+    pdf.drawString(40, y, "Policy Audit Report")
+    y -= 22
+    pdf.setFont("Helvetica", 10)
+
+    def draw_line(text: str) -> None:
+        nonlocal y
+        if y < 60:
+            pdf.showPage()
+            y = height - 50
+            pdf.setFont("Helvetica", 10)
+        pdf.drawString(40, y, text[:120])
+        y -= 14
+
+    draw_line(f"Audit ID: {record.id}")
+    draw_line(f"Filename: {record.filename}")
+    draw_line(f"Created: {record.created_at.isoformat()}")
+    draw_line(f"Score: {record.score} ({record.rating})")
+    draw_line(
+        "Classification: "
+        f"{record.doc_type or 'general'} / {record.jurisdiction or 'general'}"
+    )
+    draw_line(f"Matched items: {len(record.matched_items or [])}")
+    draw_line(f"Gaps: {len(record.gaps or [])}")
+    draw_line("")
+
+    gaps = record.gaps or []
+    if gaps:
+        draw_line("Top gaps:")
+        for gap in gaps[:10]:
+            severity = (gap.get("severity") or "medium").upper()
+            item = gap.get("checklist_item", "Unknown requirement")
+            draw_line(f"- {severity}: {item}")
+        draw_line("")
+
+    matched_items = record.matched_items or []
+    if matched_items:
+        draw_line("Top matched items:")
+        for item in matched_items[:10]:
+            draw_line(f"- {item}")
+
+    pdf.save()
+    buffer.seek(0)
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="policy-audit-{record.id}.pdf"'},
+    )

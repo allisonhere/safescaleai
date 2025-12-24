@@ -6,6 +6,7 @@ import { AutoRefresh } from "@/components/auto-refresh";
 import { AlertsHeaderActions } from "@/components/alerts-header-actions";
 import { HeaderActions } from "@/components/header-actions";
 import { PolicyAuditPanel } from "@/components/policy-audit-panel";
+import { DownloadFileButton } from "@/components/download-file-button";
 import type { AuditLogRead } from "@shared/contracts/audit";
 import type { UsageSummary } from "@shared/contracts/billing";
 import type { ComplianceDashboard } from "@shared/contracts/compliance";
@@ -210,7 +211,21 @@ export default async function Home() {
                 <CardTitle>Active regulatory alerts</CardTitle>
                 <CardDescription>Monitored by the autonomous agentic scraper.</CardDescription>
               </div>
-              <AlertsHeaderActions />
+              <div className="flex flex-wrap items-center gap-2">
+                <DownloadFileButton
+                  endpoint="/reports/alerts.csv"
+                  filename="regulatory-alerts.csv"
+                  label="Export alerts CSV"
+                  variant="ghost"
+                />
+                <DownloadFileButton
+                  endpoint="/reports/alerts.pdf"
+                  filename="regulatory-alerts.pdf"
+                  label="Export alerts PDF"
+                  variant="ghost"
+                />
+                <AlertsHeaderActions />
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {alerts.length === 0 ? (
