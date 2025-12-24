@@ -41,6 +41,40 @@
   --progress-bg: #1f2a37;
 }
 
+:root[data-theme="jellyseerr"] {
+  color-scheme: dark;
+  --background: #0b1220;
+  --foreground: #e4edf8;
+  --muted-foreground: #9aa7ba;
+  --surface: rgba(14, 25, 42, 0.92);
+  --surface-2: #17233a;
+  --border: #25324a;
+  --accent: #22d3ee;
+  --accent-strong: #0ea5e9;
+  --accent-soft: rgba(24, 74, 96, 0.72);
+  --glow-1: rgba(34, 211, 238, 0.2);
+  --glow-2: rgba(56, 189, 248, 0.25);
+  --page-gradient: radial-gradient(circle at top, #132942, #0b1220 45%, #0a0f1a 100%);
+  --progress-bg: #1b2a40;
+}
+
+:root[data-theme="obsidian"] {
+  color-scheme: dark;
+  --background: #0f1118;
+  --foreground: #ebe6f6;
+  --muted-foreground: #a59fb4;
+  --surface: rgba(20, 22, 34, 0.92);
+  --surface-2: #1a1d2b;
+  --border: #2b3045;
+  --accent: #9b5cff;
+  --accent-strong: #7c3aed;
+  --accent-soft: rgba(68, 39, 104, 0.72);
+  --glow-1: rgba(155, 92, 255, 0.24);
+  --glow-2: rgba(99, 102, 241, 0.22);
+  --page-gradient: radial-gradient(circle at top, #1b1f2f, #0f1118 50%, #0b0d14 100%);
+  --progress-bg: #24283a;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

@@ -20,9 +20,11 @@ export const metadata: Metadata = {
 const themeScript = `
 (() => {
   try {
+    const allowed = ["light", "dark", "jellyseerr", "obsidian"];
     const stored = localStorage.getItem("safescale_theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const theme = stored || (prefersDark ? "dark" : "light");
+    const fallback = prefersDark ? "obsidian" : "light";
+    const theme = stored && allowed.includes(stored) ? stored : fallback;
     document.documentElement.dataset.theme = theme;
   } catch (error) {
     // Ignore theme boot errors.
